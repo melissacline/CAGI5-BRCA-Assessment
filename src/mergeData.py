@@ -8,6 +8,7 @@
 import argparse
 import csv
 import glob
+import numpy
 import random
 import re
 
@@ -181,20 +182,23 @@ def appendHeaders(headers, newHeaders):
 
 def printHeader(actualDataColnames, predictedDataColnames):
     """
-    Print out the header line, with first the actual data and then
+    Print out the header line, with: the variant, the actual data,
+    the predictions, and the median prediction probability.
     the prediction data.
     """
     print "Variant\t",
     print '\t'.join(actualDataColnames),
     print "\t",
-    print '\t'.join(predictedDataColnames)
+    print '\t'.join(predictedDataColnames),
+    print "\tMedianPrediction"
 
 
 def printData(actualData, predictedData, printFullSet=False):
     """
     For each variant, print the variant name, the values from the 
     actual data dictionary, and the values from the predicted data
-    dictionary.  Order the values by sorted order of the column name,
+    dictionary, and the median probabiility from all predictors.  
+    Order the values by sorted order of the column name,
     using the first variant in the set as an exemplar.
     """
     if printFullSet:
@@ -205,6 +209,7 @@ def printData(actualData, predictedData, printFullSet=False):
     predictedDataHeaders =  sorted(predictedData[variantSet[0]].keys())
     printHeader(actualDataHeaders, predictedDataHeaders)
     for variant in variantSet:
+        allPredictedProbabilities = list()
         print variant,
         for column in actualDataHeaders:
             print "\t%s" % (actualData[variant][column]),
@@ -213,10 +218,21 @@ def printData(actualData, predictedData, printFullSet=False):
                 print '\t',
             else:
                 if predictedData[variant].has_key(column):
-                    print "\t%s" % (predictedData[variant][column]),
+                    value = predictedData[variant][column]
+                    print "\t%s" % (value),
+                    #
+                    # If this column is an estimated probability, 
+                    # denoted by a label ending with a '_P', add
+                    # the numeric value to the list.
+                    if re.search("_P$", column) and value != "NA":
+                        allPredictedProbabilities.append(float(value))
                 else:
                     print '\t',
-        print
+        if len(allPredictedProbabilities) > 0:
+            print "\t%4.3f" % (numpy.median(allPredictedProbabilities))
+        else:
+            print
+                              
 
 if __name__ == "__main__":
     main()
