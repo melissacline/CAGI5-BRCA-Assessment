@@ -60,7 +60,8 @@ def readActualData(actualDataFilename):
         tokens = line.rstrip().split('\t')
         variant = tokens[0] + ":" + tokens[1]
         varData = { "Assessment" : classToProbability(int(tokens[6])), 
-                    "Class": tokens[6]}
+                    "Class": tokens[6],
+                    "ProteinHgvs": tokens[2]}
         variants[variant] = varData
     return(variants)
 
