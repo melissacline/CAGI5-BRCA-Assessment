@@ -22,28 +22,28 @@ scorePrediction = function(realValue, realClass, predictedValue,
                            - sum(is.na(thisPredictedValue))
         rmsd = sum((thisPredictedValue - realValue)^2, na.rm=T)/nPredictions
 
-        # get AUC
-        mm = multiclass.roc(realClass, thisPredictedValue) 
-        auc = as.numeric(mm$auc)
-
-        # Omit the variants classified as Class 3
+	#
+	# Get the AUC
         allValues = data.frame("class"=realClass, 
                                "prediction"=thisPredictedValue)
-        noVus = subset(allValues, class != 3)
-        aucStruct.noVus = performance(prediction(noVus$prediction,
-					         (noVus$class >= 4)),"auc")
-        auc.noVus = round(unlist(slot(aucStruct.noVus, "y.values")), 
-                          digits = 6)
-        performance = findThresholdBestF1(noVus$prediction, (noVus$class >= 4),
+        aucStruct = performance(prediction(allValues$prediction,
+					   (allValues$class >= 4)),"auc")
+        auc = round(unlist(slot(aucStruct, "y.values")), digits = 6)
+	
+	# 
+	# Find the threshold that optimizes F1, and measure the
+	# sensitivity, specificity, accuracy and F1 for that threshold.
+        performance = findThresholdBestF1(allValues$prediction, 
+	                                  (allValues$class >= 4),
                                           seq(0,1,length.out=100))
         newResults = data.frame("rmsd"=signif(rmsd,3), 
                          "pearson.coeff"=signif(pearsonCor.coeff,3), 
                          "kendall.coeff"=signif(kendallCor.coeff,3),
-	                 "auc"=signif(auc,3), "auc.noVus"=signif(auc.noVus, 3),
-	                 "sens.noVus"=signif(performance$sensitivity,3),
-	                 "spec.noVus"=signif(performance$specificity,3),
-	                 "acc.noVus"=signif(performance$accuracy,3),
-		         "f1.noVus"=signif(performance$f1,3))
+	                 "auc"=signif(auc,3), 
+	                 "sens"=signif(performance$sensitivity,3),
+	                 "spec"=signif(performance$specificity,3),
+	                 "acc"=signif(performance$accuracy,3),
+		         "f1"=signif(performance$f1,3))
         allResults = rbind(allResults, newResults)
     }
     meanVals = as.data.frame(t(apply(allResults, 2, mean)))
@@ -81,14 +81,16 @@ findThresholdBestF1 = function(predicted.value, actual.patho, thresholds)
                       "f1"=f1[bestIndex]))
 }
 
-mp = read.table('../data/predictions.merged.txt', na.strings="NA", 
+mp = read.table('../data/predictions.merged.labeled.txt', na.strings="NA", 
                 header=T, fill=T)
 results = data.frame()
-realValue = mp$Assessment
 #
-# 
+# Combine all Pathogenic and Likely Pathogenic into one set, all Benign and
+# Likely Benign into one set, and omit all VUS variants. 
 mp[which(mp$Class ==4),]$Class = 5
 mp[which(mp$Class ==2),]$Class = 1
+mp = subset(mp, Class != 3)
+realValue = mp$Assessment
 for (ii in 1:length(mp)) {
     print(colnames(mp)[ii])
     if (length(grep("_P$", colnames(mp)[ii])) > 0) {
@@ -97,7 +99,7 @@ for (ii in 1:length(mp)) {
         predictedValueStd[is.na(predictedValueStd)] = 0
         newResults = scorePrediction(realValue, mp$Class,
                                  predictedValue, predictedValueStd,
-                                 bootstrap.tests=5,
+                                 bootstrap.tests=1000,
                                  method=colnames(mp)[ii])
         if (nrow(results) == 0) {
             results = newResults
@@ -106,6 +108,6 @@ for (ii in 1:length(mp)) {
         }
    }
 }
-write.table(results, file="assessment.stats.txt", col.names=NA, row.names=T,
+write.table(results, file="../data/assessment.stats.txt", col.names=NA, row.names=T,
             sep='\t', quote=F)
 
