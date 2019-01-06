@@ -1,4 +1,4 @@
-library(ggplot2)
+library(RColorBrewer)
 
 #
 # Read the labeled predictions.  Remove the Class 3 variants.  Make a new
@@ -13,16 +13,17 @@ predictorFrame = data.frame("Interpretation" = pm$Interpretation)
 #
 # Identify the prediction columns (the probabilities).  Derive a sorted list of those columns
 predictorColumns = c()
+predictorLabels = c()
 for (ii  in 1:ncol(pm)) {
     if (length(grep("_P$", colnames(pm)[ii])) > 0) {
         predictorColumns = c(predictorColumns, ii)
-        predictorLabels = c(predictorLabels)
+        predictorLabels = c(predictorLabels, colnames(pm)[ii])
     }
 }
 
 #
-# Build a new data frame that contains only the interpretation and the predicted 
-# probabilities, with human-readable method names.
+# Build a new data frame that contains only the interpretation and the  
+# predicted probabilities, with human-readable method names.
 for (jj in order(predictorLabels)) {
     colIndex = predictorColumns[jj]
     colName = gsub("_", " ", sub("_P$", "", colnames(pm)[colIndex]))
@@ -36,7 +37,39 @@ colorPerMethod = rainbow(length(predictorLabels))
 png(file="../output/boxplots.all.png", width=480, res=96)
 par(mfrow=c(6,3),mar = c(2,3,2,1))
 for (ii in 2:ncol(predictorFrame)) {
-    boxplot(predictorFrame[,ii] ~ pm$Interpretation, main=colnames(predictorFrame)[ii], 
-           col=colorPerMethod[ii-1])
+    boxplot(predictorFrame[,ii] ~ pm$Interpretation, 
+            main=colnames(predictorFrame)[ii], 
+            col=colorPerMethod[ii-1])
 }
+dev.off()
+
+#
+# Build a special boxplot diagram for the TBI prediction
+png(file="../output/tbi.boxplots.png", width=480, res=96)
+par(mfcol=c(2,2), mar=c(2,3,2,1))
+boxplot(TBI_1_P ~ Interpretation, data=pm, 
+        main="TBI 1: Splicing, NN",
+	col="blue")
+boxplot(TBI_2_P ~ Interpretation, data=pm, 
+        main="TBI 2: Splicing, MLR",
+	col="green")
+boxplot(TBI_3_P ~ Interpretation, data=pm, 
+        main="TBI 3: No Splicing, NN",
+	col="purple")
+boxplot(TBI_4_P ~ Interpretation, data=pm, 
+        main="TBI 4: No Splicing, MLR",
+	col="cyan")
+dev.off()
+
+
+
+#
+# Build a heatmap
+# Slice off the interpretation column, and replace the NA values with -1
+interpretation = predictorFrame$Interpretation
+predictorFrame$Interpretation = NULL
+predictorFrame[is.na(predictorFrame)] = -1
+png(file="../output/prediction.heatmap.png", width=480, res=96)
+heatmap(t(as.matrix(predictorFrame)), scale="none", labCol=NA,
+        ColSideColors=brewer.pal(3, "Paired")[as.factor(interpretation)])
 dev.off()
