@@ -89,7 +89,7 @@ def readThisPredictionSet(predictor):
     predictions = dict()
     setCounter = 1
     vepLabels = ["sift", "polyphen", "revel"]
-    for predictionFile in glob.glob(predictor + "/*"):
+    for predictionFile in glob.glob(predictor + "/*prediction*txt"):
         #
         # The VEP 'predictor' is a special case for which we want the 
         # sets labeled by the method name.  For all other predictors,
@@ -132,7 +132,7 @@ def readPredictionSet(predictionFile, predictorDir, set, verbose=True):
         tokens = line.rstrip().split('\t')
         #
         # Verify that the data is formatted correctly
-        assert(len(tokens) == 5)
+        assert(len(tokens) >= 5)
         assert(re.search("c.", tokens[0]))
         assert(tokens[1] == "BRCA1" or tokens[1] == "BRCA2")
         #
