@@ -81,6 +81,7 @@ findThresholdBestF1 = function(predicted.value, actual.patho, thresholds)
                       "f1"=f1[bestIndex]))
 }
 
+options(digits=3)
 mp = read.table('../data/predictions.merged.labeled.txt', na.strings="NA", 
                 header=T, fill=T)
 results = data.frame()
@@ -108,6 +109,6 @@ for (ii in 1:length(mp)) {
         }
    }
 }
-write.table(results, file="../data/assessment.stats.txt", col.names=NA, row.names=T,
-            sep='\t', quote=F)
+write.table(results, file="../data/assessment.stats.txt", col.names=NA, 
+            row.names=T, sep='\t', quote=F)
 

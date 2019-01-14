@@ -71,5 +71,6 @@ predictorFrame$Interpretation = NULL
 predictorFrame[is.na(predictorFrame)] = -1
 png(file="../output/prediction.heatmap.png", width=480, res=96)
 heatmap(t(as.matrix(predictorFrame)), scale="none", labCol=NA,
+        margins=c(12,9),
         ColSideColors=brewer.pal(3, "Paired")[as.factor(interpretation)])
 dev.off()
