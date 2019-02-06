@@ -25,7 +25,6 @@ def main():
     actualData = readActualData(args.actual)
     predictedData = readPredictions(args.predictions)
     printData(actualData, predictedData, printFullSet=args.full_set)
-    
 
 def classToProbability(numericClass, addNoise=False):
     """
@@ -73,7 +72,7 @@ def readPredictions(predictionsDir):
     dictionary with dictionaries of each of the predictions by all predictors
     """
     predictions = dict()
-    predictors = glob.glob(predictionsDir + "/*")
+    predictors = sorted(glob.glob(predictionsDir + "/*"))
     for thisPredictor in predictors:
         thesePredictions = readThisPredictionSet(thisPredictor)
         predictions = appendPredictions(predictions, thesePredictions)
@@ -88,8 +87,8 @@ def readThisPredictionSet(predictor):
     """
     predictions = dict()
     setCounter = 1
-    vepLabels = ["sift", "polyphen", "revel"]
-    for predictionFile in glob.glob(predictor + "/*prediction*txt"):
+    vepLabels = ["polyphen", "revel", "sift"]
+    for predictionFile in sorted(glob.glob(predictor + "/*prediction*txt")):
         #
         # The VEP 'predictor' is a special case for which we want the 
         # sets labeled by the method name.  For all other predictors,
@@ -98,6 +97,7 @@ def readThisPredictionSet(predictor):
             setLabel = vepLabels[setCounter - 1]
         else:
             setLabel = str(setCounter)
+        #print "predictionFile", predictionFile, "set", setLabel
         thesePredictions = readPredictionSet(predictionFile, predictor, 
                                              setLabel)
         predictions = appendPredictions(predictions, thesePredictions)
@@ -148,6 +148,7 @@ def readPredictionSet(predictionFile, predictorDir, set, verbose=True):
         # noise to facilitate interpretation later
         if re.search("Group_3", predictorDir):
             thisP = classToProbability(int(tokens[3]), addNoise=True)
+            #print predictorDir, "set", set, "filename", predictionFile, "variant", tokens[0], "prediction", tokens[3], "prob", thisP
         else:
             thisP = tokens[3]
         thisSD = tokens[4]

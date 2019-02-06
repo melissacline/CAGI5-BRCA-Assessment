@@ -1,4 +1,5 @@
 library(RColorBrewer)
+setEPS()
 
 #
 # Read the labeled predictions.  Remove the Class 3 variants.  Make a new
@@ -34,7 +35,7 @@ for (jj in order(predictorLabels)) {
 #
 # Now generate the boxplots
 colorPerMethod = rainbow(length(predictorLabels))
-png(file="../output/boxplots.all.png", width=480, res=96)
+postscript(file="../output/boxplots.all.eps")
 par(mfrow=c(6,3),mar = c(2,3,2,1))
 for (ii in 2:ncol(predictorFrame)) {
     boxplot(predictorFrame[,ii] ~ pm$Interpretation, 
@@ -45,7 +46,7 @@ dev.off()
 
 #
 # Build a special boxplot diagram for the TBI prediction
-png(file="../output/tbi.boxplots.png", width=480, res=96)
+postscript(file="../output/tbi.boxplots.eps")
 par(mfcol=c(2,2), mar=c(2,3,2,1))
 boxplot(TBI_1_P ~ Interpretation, data=pm, 
         main="TBI 1: Splicing, NN",
@@ -69,7 +70,7 @@ dev.off()
 interpretation = predictorFrame$Interpretation
 predictorFrame$Interpretation = NULL
 predictorFrame[is.na(predictorFrame)] = -1
-png(file="../output/prediction.heatmap.png", width=480, res=96)
+postscript(file="../output/prediction.heatmap.eps")
 heatmap(t(as.matrix(predictorFrame)), scale="none", labCol=NA,
         margins=c(12,9),
         ColSideColors=brewer.pal(3, "Paired")[as.factor(interpretation)])
