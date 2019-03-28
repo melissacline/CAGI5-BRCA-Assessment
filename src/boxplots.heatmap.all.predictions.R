@@ -10,6 +10,7 @@ pm$Interpretation[which(pm$Class < 3)] = "Benign"
 pm$Interpretation[which(pm$Class > 3)] = "Pathogenic"
 pm$Interpretation = as.factor(pm$Interpretation)
 predictorFrame = data.frame("Interpretation" = pm$Interpretation)
+predictorFrame["Class"] = pm$Class
 
 #
 # Identify the prediction columns (the probabilities).  Derive a sorted list of those columns
@@ -35,7 +36,7 @@ for (jj in order(predictorLabels)) {
 #
 # Now generate the boxplots
 colorPerMethod = rainbow(length(predictorLabels))
-postscript(file="../output/boxplots.all.eps")
+postscript(file="../output/Supplemental_Figure_1.eps")
 par(mfrow=c(6,3),mar = c(2,3,2,1))
 for (ii in 2:ncol(predictorFrame)) {
     boxplot(predictorFrame[,ii] ~ pm$Interpretation, 
@@ -45,8 +46,19 @@ for (ii in 2:ncol(predictorFrame)) {
 dev.off()
 
 #
+# Generate boxplots that relate predictions to the ENIGMA class (1-5)
+postscript(file="../output/Supplemental_Figure_2.eps")
+par(mfrow=c(6,3),mar = c(2,3,2,1))
+for (ii in 2:ncol(predictorFrame)) {
+    boxplot(predictorFrame[,ii] ~ pm$Class,,
+            main=colnames(predictorFrame)[ii],
+            col=colorPerMethod[ii-1])
+}
+dev.off()
+
+#
 # Build a special boxplot diagram for the TBI prediction
-postscript(file="../output/tbi.boxplots.eps")
+postscript(file="../output/Figure_3.eps")
 par(mfcol=c(2,2), mar=c(2,3,2,1))
 boxplot(TBI_1_P ~ Interpretation, data=pm, 
         main="TBI 1: Splicing, NN",
@@ -70,7 +82,7 @@ dev.off()
 interpretation = predictorFrame$Interpretation
 predictorFrame$Interpretation = NULL
 predictorFrame[is.na(predictorFrame)] = -1
-postscript(file="../output/prediction.heatmap.eps")
+postscript(file="../output/Figure_2.eps")
 heatmap(t(as.matrix(predictorFrame)), scale="none", labCol=NA,
         margins=c(12,9),
         ColSideColors=brewer.pal(3, "Paired")[as.factor(interpretation)])
