@@ -59,7 +59,8 @@ def readActualData(actualDataFilename):
         tokens = line.rstrip().split('\t')
         variant = tokens[0] + ":" + tokens[1]
         varData = { "Assessment" : classToProbability(int(tokens[6])), 
-                    "Class": tokens[6],
+                    "OriginalClass": tokens[5],
+                    "FinalClass": tokens[6],
                     "ProteinHgvs": tokens[2]}
         variants[variant] = varData
     return(variants)
@@ -97,7 +98,6 @@ def readThisPredictionSet(predictor):
             setLabel = vepLabels[setCounter - 1]
         else:
             setLabel = str(setCounter)
-        #print "predictionFile", predictionFile, "set", setLabel
         thesePredictions = readPredictionSet(predictionFile, predictor, 
                                              setLabel)
         predictions = appendPredictions(predictions, thesePredictions)
@@ -158,6 +158,11 @@ def readPredictionSet(predictionFile, predictorDir, set, verbose=True):
             assert(float(thisP) >= 0.0 and float(thisP) <= 1.0)
             assert(float(thisSD) >= 0.0)
             predictions[thisVariant] = { pLabel:thisP, sdLabel:thisSD } 
+        # 
+        # Group 6 is also a special case, as we want to capture the comments
+        # fields for Predictors 1 and 2 of Group 6.
+        if re.search("Group_6", predictorDir) and (set == "1" or set == "2"):
+            predictions[thisVariant][label + "_comments"] = tokens[5]
     return(predictions)
 
 
