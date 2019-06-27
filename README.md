@@ -57,11 +57,12 @@ rather than $28.
 6. Compute the assessment statistics, with R
 ```
 Rscript computeAssessmentStats.R
-'''
+```
 
 Creates assessment.stats.txt
 
 7. Sort the lines in assessment.stats.txt and clean up the labels by hand
-to create assessment.stats.sorted.txt
+to create assessment.stats.sorted.txt.  Import this file into an EXCEL
+spreadsheet to create Supplemental Table S2.
 
 

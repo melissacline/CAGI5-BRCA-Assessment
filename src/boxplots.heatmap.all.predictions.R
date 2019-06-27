@@ -82,7 +82,7 @@ dev.off()
 interpretation = predictorFrame$Interpretation
 predictorFrame$Interpretation = NULL
 predictorFrame[is.na(predictorFrame)] = -1
-postscript(file="../output/Figure_2.eps")
+postscript(file="../output/Figure_1.eps")
 heatmap(t(as.matrix(predictorFrame)), scale="none", labCol=NA,
         margins=c(12,9),
         ColSideColors=brewer.pal(3, "Paired")[as.factor(interpretation)])
