@@ -4,64 +4,81 @@ library(PRROC)
 library(stringr)
 
 
+oneIterationPredictionScoring = function(realValue, realClass,
+			      	         predictedValue, predictedValueStd,
+					 addRandomNoise=F)
+{
+    if (addRandomNoise) {
+        thisPredictedValue = predictedValue + rnorm(length(predictedValueStd),
+                                                0, predictedValueStd)
+    } else {
+        thisPredictedValue = predictedValue
+    }
+    #get the correlation coefficients
+    pearsonCor.coeff <- cor(realValue , thisPredictedValue , 
+                            method = "pearson",  use="pairwise")
+
+    #get RMSD
+    nPredictions = length(thisPredictedValue) 
+                           - sum(is.na(thisPredictedValue))
+    rmsd = sum((thisPredictedValue - realValue)^2, na.rm=T)/nPredictions
+
+    #
+    # Get the AUC
+    allValues = data.frame("class"=realClass,"prediction"=thisPredictedValue)
+    aucStruct = performance(prediction(allValues$prediction,
+				(allValues$class >= 4)),"auc")
+    auc = round(unlist(slot(aucStruct, "y.values")), digits = 6)
+
+    #
+    # Get the area under the Precision/Recall curve
+    allValues = subset(allValues, !is.na(prediction))
+    pr = pr.curve(scores.class0=subset(allValues, class > 3)$prediction,
+	          scores.class1=subset(allValues, class < 3)$prediction)
+    aupr = unlist(pr$auc.integral)
+	
+    # 
+    # Find the threshold that optimizes F1, and measure the
+    # sensitivity, specificity, accuracy and F1 for that threshold.
+    performance = findThresholdBestF1(allValues$prediction, 
+	                              (allValues$class >= 4),
+                                      seq(0,1,length.out=100))
+    newResults = data.frame("rmsd"=signif(rmsd,3), 
+                            "pearson.coeff"=signif(pearsonCor.coeff,3), 
+                            "auc"=signif(auc,3),
+	                    "aupr"=signif(aupr,3), 
+			    "prec"=signif(performance$precision,3),
+			    "rec"=signif(performance$recall,3),
+	                    "acc"=signif(performance$accuracy,3),
+		            "f1"=signif(performance$f1,3),
+			    "threshold"=signif(performance$threshold,3))
+    return(newResults)
+}
+
+
 
 scorePrediction = function(realValue, realClass, predictedValue, 
                            predictedValueStd, bootstrap.tests, method)
-{   
-    allResults = data.frame()                             
+{
+    nonBootstrapResults = oneIterationPredictionScoring(realValue, realClass,
+                                    		        predictedValue,
+							predictedValueStd,
+				                        addRandomNoise=F)
+    bootstrapResults = data.frame()                             
     for (jj in 1:bootstrap.tests) {
-        thisPredictedValue = predictedValue + rnorm(length(predictedValueStd),
-                                                    0, predictedValueStd)
-        #get the correlation coefficients
-        pearsonCor.coeff <- cor(realValue , thisPredictedValue , 
-                                method = "pearson",  use="pairwise")
-
-        #get RMSD
-        nPredictions = length(thisPredictedValue) 
-                           - sum(is.na(thisPredictedValue))
-        rmsd = sum((thisPredictedValue - realValue)^2, na.rm=T)/nPredictions
-
-	#
-	# Get the AUC
-        allValues = data.frame("class"=realClass, 
-                               "prediction"=thisPredictedValue)
-        aucStruct = performance(prediction(allValues$prediction,
-					   (allValues$class >= 4)),"auc")
-        auc = round(unlist(slot(aucStruct, "y.values")), digits = 6)
-	
-
-	#
-	# Get the area under the Precision/Recall curve
-        allValues = subset(allValues, !is.na(prediction))
-	pr = pr.curve(scores.class0=subset(allValues, class > 3)$prediction,
-	              scores.class1=subset(allValues, class < 3)$prediction)
-        aupr = unlist(pr$auc.integral)
-
-	
-	# 
-	# Find the threshold that optimizes F1, and measure the
-	# sensitivity, specificity, accuracy and F1 for that threshold.
-        performance = findThresholdBestF1(allValues$prediction, 
-	                                  (allValues$class >= 4),
-                                          seq(0,1,length.out=100))
-        newResults = data.frame("rmsd"=signif(rmsd,3), 
-                         "pearson.coeff"=signif(pearsonCor.coeff,3), 
-                         "auc"=signif(auc,3),
-	                 "aupr"=signif(aupr,3), 
-			 "prec"=signif(performance$precision,3),
-			 "rec"=signif(performance$recall,3),
-	                 "acc"=signif(performance$accuracy,3),
-		         "f1"=signif(performance$f1,3))
-        allResults = rbind(allResults, newResults)
+    	newResults = oneIterationPredictionScoring(realValue, realClass,
+	                                           predictedValue,
+						   predictedValueStd,
+						   addRandomNoise=T)
+        bootstrapResults = rbind(bootstrapResults, newResults)
     }
-    meanVals = as.data.frame(t(apply(allResults, 2, mean)))
-    colnames(meanVals) = paste(colnames(allResults), "Mean")
-    sdVals = as.data.frame(t(apply(allResults, 2, sd)))
-    colnames(sdVals) = paste(colnames(allResults), "SD")
-    finalResults = cbind(meanVals, sdVals)
+    sdVals = as.data.frame(t(apply(bootstrapResults, 2, sd)))
+    colnames(sdVals) = paste(colnames(bootstrapResults), "SD")
+    finalResults = cbind(nonBootstrapResults, sdVals)
     rownames(finalResults) = c(method)
     return(finalResults)
 }
+
 
 findThresholdBestF1 = function(predicted.value, actual.patho, thresholds) 
 {
@@ -88,7 +105,8 @@ findThresholdBestF1 = function(predicted.value, actual.patho, thresholds)
                       "accuracy"=accuracy[bestIndex],
 		      "precision"=accuracy[bestIndex],
 		      "recall"=sensitivity[bestIndex],
-                      "f1"=f1[bestIndex]))
+                      "f1"=f1[bestIndex],
+		      "threshold"=bestIndex))
 }
 
 options(digits=3)
@@ -119,10 +137,10 @@ for (ii in 1:length(mp)) {
         }
    }
 }
-colOrder = c('rmsd Mean', 'rmsd SD', 'pearson.coeff Mean', 'pearson.coeff SD',
-	     'auc Mean', 'auc SD', 'aupr Mean', 'aupr SD',
-	     'prec Mean', 'prec SD', 'rec Mean', 'rec SD', 
-	     'acc Mean', 'acc SD', 'f1 Mean', 'f1 SD')
+colOrder = c('rmsd', 'rmsd SD', 'pearson.coeff', 'pearson.coeff SD',
+	     'auc', 'auc SD', 'aupr', 'aupr SD',
+	     'prec', 'prec SD', 'rec', 'rec SD', 
+	     'acc', 'acc SD', 'f1', 'f1 SD', 'threshold')
 write.table(results[,colOrder], file="../data/assessment.stats.txt", 
 				col.names=NA,  row.names=T, sep='\t', quote=F)
 

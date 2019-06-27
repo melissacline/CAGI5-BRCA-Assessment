@@ -30,3 +30,38 @@ vep_preprocess.bash
 ```
 mergeData.py > ../data/predictions.merged.txt
 ```
+
+5. Relabel the header rows and method descriptions by hand.  Sort the rows to
+put the methods in alphabetical order.
+
+Creates ../data/predictions.merged.labeled.sorted.txt
+
+Import this file into a spreadsheet.  Creates Supplemental Table 1.
+
+5b. This step is presented for the reader convenience.  The authors of LEAP
+included data that indicate which features were most important in the
+prediction of each variant, for LEAP 1 and LEAP 2.  The following command line generates a sorted list of the features that were most important for LEAP 1
+for variants classified as benign or likely benign:
+```
+tail -n +2 predictions.merged.labeled.sorted.txt \
+  | awk -F'\t' '{ if ($3 < 3) { print $28 }}' |awk -F'=' '{ print $2}' \
+  | awk -F';' '{ for (ii = 1; ii <= NF; ii++) { print $ii}}' \
+  | sed 's/^ [0-9].//' |sort |uniq -c |sort -n -r |more
+```
+To see the equivalent results for variants classified as pathogenic or likely
+pathogenic, in the first awk command, replace if ($3 < 3) with if ($3 > 3)
+
+To see the equivalent results for LEAP 2, in the first awk command, print $31
+rather than $28.
+
+6. Compute the assessment statistics, with R
+```
+Rscript computeAssessmentStats.R
+'''
+
+Creates assessment.stats.txt
+
+7. Sort the lines in assessment.stats.txt and clean up the labels by hand
+to create assessment.stats.sorted.txt
+
+
