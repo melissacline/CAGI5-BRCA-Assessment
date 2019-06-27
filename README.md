@@ -54,15 +54,31 @@ pathogenic, in the first awk command, replace if ($3 < 3) with if ($3 > 3)
 To see the equivalent results for LEAP 2, in the first awk command, print $31
 rather than $28.
 
-6. Compute the assessment statistics, with R
+6. Generate Supplemental Figures 1 and 2, Figure 3, and the heatmap of Figure 1
+as follows:
+```
+Rscript boxplots.heatmap.all.predictions.R
+```
+To finish Figure 1, the legend is added by hand in Google Slides.
+
+7. Compute the assessment statistics, with R
 ```
 Rscript computeAssessmentStats.R
 ```
 
 Creates assessment.stats.txt
 
-7. Sort the lines in assessment.stats.txt and clean up the labels by hand
+8. Sort the lines in assessment.stats.txt and clean up the labels by hand
 to create assessment.stats.sorted.txt.  Import this file into an EXCEL
 spreadsheet to create Supplemental Table S2.
 
+9. Generate Figure 3, Supplemental Figues 1 and 2, and the dendrogram of Figure
+1 as follows:
+```
+Rscript boxplots.heatmap.all.predictions.R
+```
 
+10. Generate Figure 2 as follows:
+```
+Rscript summary.stat.barcharts.R
+```

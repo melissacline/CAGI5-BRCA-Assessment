@@ -12,10 +12,11 @@ as$color = rainbow(nrow(as))[order(as$X)]
 
 #
 # Make AUC Barplot
+
 pp1<- ggplot(as, aes(x=reorder(X, auc), y=auc, fill=X)) +
     geom_bar(stat="identity", color="black",   position=position_dodge()) +
              coord_flip() + scale_fill_manual(values=as$color) + guides(fill=FALSE) +
-    geom_errorbar(aes(ymin=auc-auc.SD, ymax=auc+auc.SD), width=.2,
+    geom_errorbar(aes(ymin=pmax(0,auc-auc.SD), ymax=auc+auc.SD), width=.2,
                  position=position_dodge(.9)) +
     labs(title="", x="", y = "Area Under ROC")+
          theme(axis.title.x = element_text(size=12),
@@ -27,7 +28,7 @@ pp1<- ggplot(as, aes(x=reorder(X, auc), y=auc, fill=X)) +
 pp2<- ggplot(as, aes(x=reorder(X, aupr), y=aupr, fill=X)) +
     geom_bar(stat="identity", color="black",   position=position_dodge()) +
              coord_flip() + scale_fill_manual(values=as$color) + guides(fill=FALSE) +
-    geom_errorbar(aes(ymin=aupr-aupr.SD, ymax=aupr+aupr.SD), width=.2,
+    geom_errorbar(aes(ymin=pmax(0,aupr-aupr.SD), ymax=aupr+aupr.SD), width=.2,
                  position=position_dodge(.9)) +
     labs(title="", x="", y = "Area Under Precision Recall")+
          theme(axis.title.x = element_text(size=12),
@@ -39,7 +40,7 @@ pp2<- ggplot(as, aes(x=reorder(X, aupr), y=aupr, fill=X)) +
 pp3<- ggplot(as, aes(x=reorder(X, prec), y=prec, fill=X)) +
     geom_bar(stat="identity", color="black",   position=position_dodge()) +	
              coord_flip() + scale_fill_manual(values=as$color) + guides(fill=FALSE) +
-    geom_errorbar(aes(ymin=prec-prec.SD, ymax=prec+prec.SD), width=.2,
+    geom_errorbar(aes(ymin=pmax(0,prec-prec.SD), ymax=prec+prec.SD), width=.2,
                  position=position_dodge(.9)) +
     labs(title="", x="", y = "Precision")+
          theme(axis.title.x = element_text(size=12),
@@ -51,7 +52,7 @@ pp3<- ggplot(as, aes(x=reorder(X, prec), y=prec, fill=X)) +
 pp4<- ggplot(as, aes(x=reorder(X, rec), y=rec, fill=X)) +
     geom_bar(stat="identity", color="black",   position=position_dodge()) +
              coord_flip() + scale_fill_manual(values=as$color) + guides(fill=FALSE) +
-    geom_errorbar(aes(ymin=rec-rec.SD, ymax=rec+rec.SD), width=.2,
+    geom_errorbar(aes(ymin=pmax(0,rec-rec.SD), ymax=rec+rec.SD), width=.2,
                  position=position_dodge(.9)) +
     labs(title="", x="", y = "Recall")+
          theme(axis.title.x = element_text(size=12),

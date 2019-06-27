@@ -106,7 +106,7 @@ findThresholdBestF1 = function(predicted.value, actual.patho, thresholds)
 		      "precision"=accuracy[bestIndex],
 		      "recall"=sensitivity[bestIndex],
                       "f1"=f1[bestIndex],
-		      "threshold"=bestIndex))
+		      "threshold"=thresholds[bestIndex]))
 }
 
 options(digits=3)
