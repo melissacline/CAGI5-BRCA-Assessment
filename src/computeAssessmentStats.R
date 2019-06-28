@@ -86,6 +86,7 @@ findThresholdBestF1 = function(predicted.value, actual.patho, thresholds)
     specificity = thresholds * 0
     sensitivity = thresholds * 0
     accuracy = thresholds * 0
+    prec = thresholds * 0
     for (ii in 1:length(thresholds)) {
         this.threshold = thresholds[ii]
         pred.patho = (predicted.value >= this.threshold)
@@ -97,13 +98,13 @@ findThresholdBestF1 = function(predicted.value, actual.patho, thresholds)
         specificity[ii] = TN / (TN + FP)
         accuracy[ii] = (TP + TN)/(TP + FP + FN +TN)
         f1[ii] = 2 * TP / (2 * TP + FP + FN)
-	prec = TP / (TP + FP)
+	prec[ii] = TP / (TP + FP)
     }
     bestIndex = which.max(f1)
     return(data.frame("sensitivity" = sensitivity[bestIndex], 
                       "specificity"=specificity[bestIndex],
                       "accuracy"=accuracy[bestIndex],
-		      "precision"=accuracy[bestIndex],
+		      "precision"=prec[bestIndex],
 		      "recall"=sensitivity[bestIndex],
                       "f1"=f1[bestIndex],
 		      "threshold"=thresholds[bestIndex]))
