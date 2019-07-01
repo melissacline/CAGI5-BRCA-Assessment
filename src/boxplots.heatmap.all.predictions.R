@@ -38,10 +38,10 @@ for (jj in order(predictorLabels)) {
 colorPerMethod = rainbow(length(predictorLabels))
 postscript(file="../output/Supplemental_Figure_1.eps")
 par(mfrow=c(6,3),mar = c(2,3,2,1))
-for (ii in 2:ncol(predictorFrame)) {
+for (ii in 3:ncol(predictorFrame)) {
     boxplot(predictorFrame[,ii] ~ pm$Interpretation, 
             main=colnames(predictorFrame)[ii], 
-            col=colorPerMethod[ii-1])
+            col=colorPerMethod[ii-2])
 }
 dev.off()
 
@@ -49,10 +49,10 @@ dev.off()
 # Generate boxplots that relate predictions to the ENIGMA class (1-5)
 postscript(file="../output/Supplemental_Figure_2.eps")
 par(mfrow=c(6,3),mar = c(2,3,2,1))
-for (ii in 2:ncol(predictorFrame)) {
+for (ii in 3:ncol(predictorFrame)) {
     boxplot(predictorFrame[,ii] ~ pm$Class,,
             main=colnames(predictorFrame)[ii],
-            col=colorPerMethod[ii-1])
+            col=colorPerMethod[ii-2])
 }
 dev.off()
 
